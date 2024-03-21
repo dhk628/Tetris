@@ -1,5 +1,7 @@
 <h1>Tetris</h1>
-<p>I am trying to recreate the classic Tetris game using the <a href="https://pypi.org/project/pygame/">pygame</a> package in Python.</p> The goal of this project is to essentially re-familiarize myself with Python and Git.
+<p>I am trying to recreate the classic Tetris game using the <a href="https://pypi.org/project/pygame/">pygame</a> package in Python.
+The goal of this project is to essentially re-familiarize myself with Python and Git.
+</p>
 
 <h3>Progress</h3>
 
