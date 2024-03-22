@@ -73,12 +73,21 @@ fall_speed = 500
 running = True
 screen.fill(BLACK)
 
-#draw border
+# draw border
 pygame.draw.rect(screen, WHITE, (
     OFFSET_WIDTH - BOUNDARY_WIDTH, OFFSET_HEIGHT - BOUNDARY_WIDTH, GAME_WIDTH + 2 * BOUNDARY_WIDTH,
     GAME_HEIGHT + 2 * BOUNDARY_WIDTH), BOUNDARY_WIDTH)
 
 while running:
+    game.fill(BLACK)
+
+    # draw gridlines
+    for x in range(9):
+        pygame.draw.line(game, GREY, (30 + 32 * x, 0), (30 + 32 * x, GAME_HEIGHT), LINE_WIDTH)
+
+    for y in range(19):
+        pygame.draw.line(game, GREY, (0, 30 + 32 * y), (GAME_WIDTH, 30 + 32 * y), LINE_WIDTH)
+
     fall_time += fall_clock.get_rawtime()
     fall_clock.tick()
 
@@ -114,14 +123,6 @@ while running:
                     position[0] += 1
             # elif event.key == (K_w or K_UP):
             # rotate
-
-    game.fill(BLACK)
-
-    for x in range(9):
-        pygame.draw.line(game, GREY, (30 + 32 * x, 0), (30 + 32 * x, GAME_HEIGHT), LINE_WIDTH)
-
-    for y in range(19):
-        pygame.draw.line(game, GREY, (0, 30 + 32 * y), (GAME_WIDTH, 30 + 32 * y), LINE_WIDTH)
 
     draw_shape(I, position, rotation)
 
