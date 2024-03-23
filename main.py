@@ -1,7 +1,8 @@
 import pygame
 import math
+import random
 
-from shapes import I, O, T, S, Z, J, L, shapes, shape_colors, CYAN, YELLOW, PURPLE, GREEN, RED, BLUE, ORANGE
+from shapes import I, O, T, S, Z, J, L, shapes, shape_colors, CYAN, YELLOW, PURPLE, GREEN, RED, BLUE, ORANGE, Piece
 
 from pygame.locals import (
     QUIT,
@@ -17,23 +18,29 @@ from pygame.locals import (
 )
 
 
-def draw_shape(shape, position, rotation):
-    for i in range(4):
-        for j in range(4):
-            if shape[rotation][j][i] == '0':
-                pygame.draw.rect(game, RED, grid_coordinates[j + position[1]][i + position[0]] + (BOX_SIZE, BOX_SIZE),
-                                 0)
+def draw_piece(piece):
+    for i in range(len(piece.shape[piece.rotation][0])):
+        for j in range(len(piece.shape[piece.rotation])):
+            if piece.shape[piece.rotation][j][i] == '0':
+                pygame.draw.rect(game, piece.color,
+                                 grid_coordinates[j + piece.y][i + piece.x] + (BOX_SIZE, BOX_SIZE))
 
 
-def is_position_valid(shape, position):
-    for i in range(4):
-        for j in range(4):
-            if shape[rotation][j][i] == '0':
-                if (position[0] + i) not in range(10) or (position[1] + j) not in range(20):
+def is_position_valid(piece):
+    for i in range(len(piece.shape[piece.rotation][0])):
+        for j in range(len(piece.shape[piece.rotation])):
+            if piece.shape[piece.rotation][j][i] == '0':
+                if (piece.x + i) not in range(10) or (piece.y + j) not in range(20):
                     return False
-
     return True
 
+
+def is_piece_at_bottom(piece):
+    for i in range(len(piece.shape[piece.rotation][0])):
+        for j in range(len(piece.shape[piece.rotation])):
+            if piece.shape[piece.rotation][j][i] == '0' and piece.y + j == 19:
+                return True
+    return False
 
 BOX_SIZE = 30
 LINE_WIDTH = 2
@@ -57,10 +64,9 @@ for y in range(20):
     for x in range(10):
         grid_coordinates[y].append((x * (BOX_SIZE + LINE_WIDTH), y * (BOX_SIZE + LINE_WIDTH)))
 
-pygame.init()
+confirmed_pieces = grid
 
-position = [3, 0]
-rotation = 0
+pygame.init()
 
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 game = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
@@ -69,6 +75,9 @@ fall_clock = pygame.time.Clock()
 
 fall_time = 0
 fall_speed = 500
+
+current_piece = Piece(3, 0, shapes[random.randint(0, len(shapes) - 1)])
+create_new_piece = False
 
 running = True
 screen.fill(BLACK)
@@ -88,14 +97,23 @@ while running:
     for y in range(19):
         pygame.draw.line(game, GREY, (0, 30 + 32 * y), (GAME_WIDTH, 30 + 32 * y), LINE_WIDTH)
 
+    if create_new_piece:
+        new_piece = Piece(3, 0, shapes[random.randint(0, len(shapes) - 1)])
+        create_new_piece = False
+        current_piece = new_piece
+    else:
+        current_piece = current_piece
+
+    draw_piece(current_piece)
+
     fall_time += fall_clock.get_rawtime()
     fall_clock.tick()
 
     if fall_time > fall_speed:
         fall_time = 0
-        position[1] += 1
-        if not is_position_valid(I, position):
-            position[1] -= 1
+        current_piece.y += 1
+        if not is_position_valid(current_piece):
+            current_piece.y -= 1
 
     keys = pygame.key.get_pressed()
     for event in pygame.event.get():
@@ -105,26 +123,22 @@ while running:
             if event.key == K_ESCAPE:
                 running = False
             elif event.key == (K_s or K_DOWN):
-                position[1] += 1
-                if not is_position_valid(I, position):
-                    print("Not valid")
-                    position[1] -= 1
+                current_piece.y += 1
+                if not is_position_valid(current_piece):
+                    current_piece.y -= 1
             elif event.key == (K_d or K_RIGHT):
-                position[0] += 1
-                print("position = ", position)
-                print(I[rotation])
-                if not is_position_valid(I, position):
-                    print("Not valid")
-                    position[0] -= 1
+                current_piece.x += 1
+                if not is_position_valid(current_piece):
+                    current_piece.x -= 1
             elif event.key == (K_a or K_LEFT):
-                position[0] -= 1
-                if not is_position_valid(I, position):
-                    print("Not valid")
-                    position[0] += 1
+                current_piece.x -= 1
+                if not is_position_valid(current_piece):
+                    current_piece.x += 1
             # elif event.key == (K_w or K_UP):
             # rotate
 
-    draw_shape(I, position, rotation)
+    if is_piece_at_bottom(current_piece):
+        create_new_piece = True
 
     screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
 

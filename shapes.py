@@ -41,8 +41,8 @@ L = [['..0',
       '.0.',
       '.0.']]
 
-O = [['00',
-      '00']]
+O = [['.00.',
+      '.00.']]
 
 S = [['.00',
       '.0.',
@@ -94,6 +94,7 @@ PURPLE = (255, 0, 255)
 ORANGE = (255, 165, 0)
 
 shape_colors = [CYAN, YELLOW, PURPLE, GREEN, RED, BLUE, ORANGE]
+
 
 class Piece(object):
     def __init__(self, column, row, shape):
