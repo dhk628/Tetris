@@ -104,7 +104,9 @@ while running:
     else:
         current_piece = current_piece
 
-    draw_piece(current_piece)
+    if is_piece_at_bottom(current_piece):
+        pygame.time.delay(1000)
+        create_new_piece = True
 
     fall_time += fall_clock.get_rawtime()
     fall_clock.tick()
@@ -114,6 +116,8 @@ while running:
         current_piece.y += 1
         if not is_position_valid(current_piece):
             current_piece.y -= 1
+
+    draw_piece(current_piece)
 
     keys = pygame.key.get_pressed()
     for event in pygame.event.get():
@@ -136,9 +140,6 @@ while running:
                     current_piece.x += 1
             # elif event.key == (K_w or K_UP):
             # rotate
-
-    if is_piece_at_bottom(current_piece):
-        create_new_piece = True
 
     screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
 
