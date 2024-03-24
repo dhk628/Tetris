@@ -83,6 +83,13 @@ def draw_confirmed(confirmed):
                 pygame.draw.rect(game, confirmed[j][i], grid_coordinates[j][i] + (BOX_SIZE, BOX_SIZE))
 
 
+def check_completed_line(confirmed):
+    for j in range(19, -1, -1):
+        if 0 not in confirmed[j]:
+            return j
+    return -1
+
+
 BOX_SIZE = 30
 LINE_WIDTH = 2
 BOUNDARY_WIDTH = 4
@@ -247,5 +254,23 @@ while running:
         pygame.display.flip()
         pygame.event.pump()
         pygame.time.wait(fall_speed)
+        fall_time = 0
+        fall_clock.tick()
+
+    while check_completed_line(confirmed_pieces) != -1:
+        del_row = check_completed_line(confirmed_pieces)
+        confirmed_pieces[del_row] = [0]*10
+        draw_confirmed(confirmed_pieces)
+        screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
+        pygame.display.flip()
+        pygame.event.pump()
+        #pygame.time.wait(fall_speed)
+        for j in range(del_row - 1, -1, -1):
+            confirmed_pieces[j + 1] = confirmed_pieces[j]
+        draw_confirmed(confirmed_pieces)
+        screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
+        pygame.display.flip()
+        pygame.event.pump()
+        pygame.time.wait(held_speed)
         fall_time = 0
         fall_clock.tick()
