@@ -17,4 +17,8 @@ The goal of this project is to essentially re-familiarize myself with Python and
 | Clearing filled lines                             | --          |
 
 ## Creating the game grid
-Tetris is played on a grid with 20 rows and 10 columns.
+Tetris is played on a grid with 20 rows and 10 columns. I defined variables for box sizes
+and gridline widths to draw the grid using pygame. I am also storing the grid as a 2D array,
+where the (j,i)-th entry of the array corresponds to the element on the i-th row and j-th column.
+Furthermore, the (j.i)-th entry will be 0 if the corresponding block is empty, and it will contain
+the color of the block otherwise.

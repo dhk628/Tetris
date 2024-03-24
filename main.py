@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+from time import sleep
 
 from shapes import I, O, T, S, Z, J, L, shapes, shape_colors, CYAN, YELLOW, PURPLE, GREEN, RED, BLUE, ORANGE, Piece
 
@@ -42,6 +43,23 @@ def is_piece_at_bottom(piece):
                 return True
     return False
 
+
+def confirm_piece(piece, confirmed):
+    for i in range(len(piece.shape[piece.rotation][0])):
+        for j in range(len(piece.shape[piece.rotation])):
+            if piece.shape[piece.rotation][j][i] == '0':
+                confirmed[piece.y + j][piece.x + i] = piece.color
+
+
+def draw_confirmed(confirmed):
+    for j in range(20):
+        for i in range(10):
+            if confirmed[j][i] == 0:
+                pygame.draw.rect(game, BLACK, grid_coordinates[j][i] + (BOX_SIZE, BOX_SIZE))
+            else:
+                pygame.draw.rect(game, confirmed[j][i], grid_coordinates[j][i] + (BOX_SIZE, BOX_SIZE))
+
+
 BOX_SIZE = 30
 LINE_WIDTH = 2
 BOUNDARY_WIDTH = 4
@@ -74,7 +92,7 @@ game = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
 fall_clock = pygame.time.Clock()
 
 fall_time = 0
-fall_speed = 500
+fall_speed = 1000
 
 current_piece = Piece(3, 0, shapes[random.randint(0, len(shapes) - 1)])
 create_new_piece = False
@@ -88,7 +106,7 @@ pygame.draw.rect(screen, WHITE, (
     GAME_HEIGHT + 2 * BOUNDARY_WIDTH), BOUNDARY_WIDTH)
 
 while running:
-    game.fill(BLACK)
+    draw_confirmed(confirmed_pieces)
 
     # draw gridlines
     for x in range(9):
@@ -98,15 +116,17 @@ while running:
         pygame.draw.line(game, GREY, (0, 30 + 32 * y), (GAME_WIDTH, 30 + 32 * y), LINE_WIDTH)
 
     if create_new_piece:
+        fall_time = 0
         new_piece = Piece(3, 0, shapes[random.randint(0, len(shapes) - 1)])
+        draw_piece(new_piece)
+        screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
+        pygame.display.flip()
+        pygame.event.pump()
+        pygame.time.wait(fall_speed)
         create_new_piece = False
         current_piece = new_piece
     else:
         current_piece = current_piece
-
-    if is_piece_at_bottom(current_piece):
-        pygame.time.delay(1000)
-        create_new_piece = True
 
     fall_time += fall_clock.get_rawtime()
     fall_clock.tick()
@@ -130,6 +150,8 @@ while running:
                 current_piece.y += 1
                 if not is_position_valid(current_piece):
                     current_piece.y -= 1
+                else:
+                    fall_time = 0
             elif event.key == (K_d or K_RIGHT):
                 current_piece.x += 1
                 if not is_position_valid(current_piece):
@@ -143,4 +165,14 @@ while running:
 
     screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
 
-    pygame.display.update()
+    pygame.display.flip()
+
+    if is_piece_at_bottom(current_piece):
+        create_new_piece = True
+        confirm_piece(current_piece, confirmed_pieces)
+        draw_confirmed(confirmed_pieces)
+        screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
+        pygame.display.flip()
+        pygame.event.pump()
+        pygame.time.wait(fall_speed)
+        fall_time = 0
