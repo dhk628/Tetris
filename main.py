@@ -112,10 +112,15 @@ pygame.init()
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 game = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
 
+clock = pygame.time.Clock()
 fall_clock = pygame.time.Clock()
+held_clock = pygame.time.Clock()
 
 fall_time = 0
 fall_speed = 1000
+
+held_time = 0
+held_speed = 100
 
 #current_piece = Piece(3, 0, shapes[random.randint(0, len(shapes) - 1)])
 create_new_piece = True
@@ -129,6 +134,8 @@ pygame.draw.rect(screen, WHITE, (
     GAME_HEIGHT + 2 * BOUNDARY_WIDTH), BOUNDARY_WIDTH)
 
 while running:
+    #clock.tick(10)
+
     dropped = False
     draw_confirmed(confirmed_pieces)
 
@@ -165,26 +172,53 @@ while running:
     draw_piece(current_piece)
 
     keys = pygame.key.get_pressed()
+    if keys[K_s] or keys[K_DOWN]:
+        fall_time = 0
+        held_time += held_clock.get_rawtime()
+        held_clock.tick()
+        if held_time > held_speed:
+            fall_time = 0
+            held_time = 0
+            current_piece.y += 1
+            if not is_position_valid(current_piece, confirmed_pieces):
+                current_piece.y -= 1
+    if keys[K_a] or keys[K_LEFT]:
+        held_time += held_clock.get_rawtime()
+        held_clock.tick()
+        if held_time > held_speed:
+            held_time = 0
+            current_piece.x -= 1
+            if not is_position_valid(current_piece, confirmed_pieces):
+                current_piece.x += 1
+    if keys[K_d] or keys[K_RIGHT]:
+        held_time += held_clock.get_rawtime()
+        held_clock.tick()
+        if held_time > held_speed:
+            held_time = 0
+            current_piece.x += 1
+            if not is_position_valid(current_piece, confirmed_pieces):
+                current_piece.x -= 1
+
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == K_ESCAPE:
                 running = False
-            elif event.key == (K_s or K_DOWN):
-                current_piece.y += 1
-                if not is_position_valid(current_piece, confirmed_pieces):
-                    current_piece.y -= 1
-                else:
-                    fall_time = 0
-            elif event.key == (K_d or K_RIGHT):
-                current_piece.x += 1
-                if not is_position_valid(current_piece, confirmed_pieces):
-                    current_piece.x -= 1
-            elif event.key == (K_a or K_LEFT):
-                current_piece.x -= 1
-                if not is_position_valid(current_piece, confirmed_pieces):
-                    current_piece.x += 1
+            # elif event.key == (K_s or K_DOWN):
+            #     current_piece.y += 1
+            #     if not is_position_valid(current_piece, confirmed_pieces):
+            #         current_piece.y -= 1
+            #     else:
+            #         fall_time = 0
+            # elif event.key == (K_d or K_RIGHT):
+            #     current_piece.x += 1
+            #     if not is_position_valid(current_piece, confirmed_pieces):
+            #         current_piece.x -= 1
+            # elif event.key == (K_a or K_LEFT):
+            #     current_piece.x -= 1
+            #     if not is_position_valid(current_piece, confirmed_pieces):
+            #         current_piece.x += 1
             elif event.key == (K_w or K_UP):
                 current_piece.rotation = (current_piece.rotation + 1) % len(current_piece.shape)
                 if not is_position_valid(current_piece, confirmed_pieces):
