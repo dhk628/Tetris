@@ -90,6 +90,14 @@ def check_completed_line(confirmed):
     return -1
 
 
+def is_game_over(piece, confirmed):
+    for i in range(len(piece.shape[piece.rotation][0])):
+        for j in range(len(piece.shape[piece.rotation])):
+            if piece.shape[piece.rotation][j][i] == '0' and confirmed[piece.y + j][piece.x + i] != 0:
+                return True
+    return False
+
+
 BOX_SIZE = 30
 LINE_WIDTH = 2
 BOUNDARY_WIDTH = 4
@@ -133,6 +141,7 @@ held_speed = 100
 create_new_piece = True
 
 running = True
+game_over = False
 screen.fill(BLACK)
 
 # draw border
@@ -140,7 +149,12 @@ pygame.draw.rect(screen, WHITE, (
     OFFSET_WIDTH - BOUNDARY_WIDTH, OFFSET_HEIGHT - BOUNDARY_WIDTH, GAME_WIDTH + 2 * BOUNDARY_WIDTH,
     GAME_HEIGHT + 2 * BOUNDARY_WIDTH), BOUNDARY_WIDTH)
 
-while running:
+font = pygame.font.Font('freesansbold.ttf', 32)
+game_over_text = font.render('Game Over', True, WHITE, BLACK)
+game_over_rect = game_over_text.get_rect()
+game_over_rect.center = (GAME_WIDTH // 2, GAME_HEIGHT // 2)
+
+while running and not game_over:
     #clock.tick(10)
 
     dropped = False
@@ -156,14 +170,17 @@ while running:
     if create_new_piece:
         fall_time = 0
         new_piece = Piece(3, 0, shapes[random.randint(0, len(shapes) - 1)])
-        draw_piece(new_piece)
-        screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
-        pygame.display.flip()
-        pygame.event.clear()
-        pygame.event.clear()
-        create_new_piece = False
-        current_piece = new_piece
-        fall_clock.tick()
+        if is_game_over(new_piece, confirmed_pieces):
+            game_over = True
+        else:
+            draw_piece(new_piece)
+            screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
+            pygame.display.flip()
+            pygame.event.clear()
+            pygame.event.clear()
+            create_new_piece = False
+            current_piece = new_piece
+            fall_clock.tick()
     else:
         current_piece = current_piece
 
@@ -274,3 +291,15 @@ while running:
         pygame.time.wait(held_speed)
         fall_time = 0
         fall_clock.tick()
+
+while running and game_over:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == K_ESCAPE:
+                running = False
+    #game.fill(BLACK)
+    game.blit(game_over_text, game_over_rect)
+    screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
+    pygame.display.flip()
