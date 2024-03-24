@@ -15,7 +15,8 @@ from pygame.locals import (
     K_LEFT,
     K_a,
     K_RIGHT,
-    K_d
+    K_d,
+    K_SPACE
 )
 
 
@@ -27,20 +28,42 @@ def draw_piece(piece):
                                  grid_coordinates[j + piece.y][i + piece.x] + (BOX_SIZE, BOX_SIZE))
 
 
-def is_position_valid(piece):
+def get_bottom_index(piece):
+    for j in range(len(piece.shape[piece.rotation]) - 1, -1, -1):
+        compare = piece.shape[piece.rotation][j]
+        if compare != '.'*len(piece.shape[piece.rotation][0]):
+            return j
+
+
+def is_position_valid(piece, confirmed):
     for i in range(len(piece.shape[piece.rotation][0])):
         for j in range(len(piece.shape[piece.rotation])):
             if piece.shape[piece.rotation][j][i] == '0':
                 if (piece.x + i) not in range(10) or (piece.y + j) not in range(20):
                     return False
+                elif confirmed[piece.y + j][piece.x + i] != 0:
+                    return False
     return True
 
 
-def is_piece_at_bottom(piece):
+def drop_piece(piece, confirmed):
+    base = piece.y
+    for j in range(20):
+        dropped = piece
+        dropped.y = base + j
+
+        if not is_position_valid(dropped, confirmed):
+            return j - 1
+
+
+def is_piece_at_bottom(piece, confirmed):
     for i in range(len(piece.shape[piece.rotation][0])):
         for j in range(len(piece.shape[piece.rotation])):
             if piece.shape[piece.rotation][j][i] == '0' and piece.y + j == 19:
                 return True
+            elif piece.shape[piece.rotation][j][i] == '0' and piece.y + j + 1 < 20:
+                if confirmed[piece.y + j + 1][piece.x + i] != 0:
+                    return True
     return False
 
 
@@ -94,8 +117,8 @@ fall_clock = pygame.time.Clock()
 fall_time = 0
 fall_speed = 1000
 
-current_piece = Piece(3, 0, shapes[random.randint(0, len(shapes) - 1)])
-create_new_piece = False
+#current_piece = Piece(3, 0, shapes[random.randint(0, len(shapes) - 1)])
+create_new_piece = True
 
 running = True
 screen.fill(BLACK)
@@ -106,6 +129,7 @@ pygame.draw.rect(screen, WHITE, (
     GAME_HEIGHT + 2 * BOUNDARY_WIDTH), BOUNDARY_WIDTH)
 
 while running:
+    dropped = False
     draw_confirmed(confirmed_pieces)
 
     # draw gridlines
@@ -121,10 +145,11 @@ while running:
         draw_piece(new_piece)
         screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
         pygame.display.flip()
-        pygame.event.pump()
-        pygame.time.wait(fall_speed)
+        pygame.event.clear()
+        pygame.event.clear()
         create_new_piece = False
         current_piece = new_piece
+        fall_clock.tick()
     else:
         current_piece = current_piece
 
@@ -134,7 +159,7 @@ while running:
     if fall_time > fall_speed:
         fall_time = 0
         current_piece.y += 1
-        if not is_position_valid(current_piece):
+        if not is_position_valid(current_piece, confirmed_pieces):
             current_piece.y -= 1
 
     draw_piece(current_piece)
@@ -148,26 +173,39 @@ while running:
                 running = False
             elif event.key == (K_s or K_DOWN):
                 current_piece.y += 1
-                if not is_position_valid(current_piece):
+                if not is_position_valid(current_piece, confirmed_pieces):
                     current_piece.y -= 1
                 else:
                     fall_time = 0
             elif event.key == (K_d or K_RIGHT):
                 current_piece.x += 1
-                if not is_position_valid(current_piece):
+                if not is_position_valid(current_piece, confirmed_pieces):
                     current_piece.x -= 1
             elif event.key == (K_a or K_LEFT):
                 current_piece.x -= 1
-                if not is_position_valid(current_piece):
+                if not is_position_valid(current_piece, confirmed_pieces):
                     current_piece.x += 1
-            # elif event.key == (K_w or K_UP):
-            # rotate
+            elif event.key == (K_w or K_UP):
+                current_piece.rotation = (current_piece.rotation + 1) % len(current_piece.shape)
+                if not is_position_valid(current_piece, confirmed_pieces):
+                    current_piece.rotation = (current_piece.rotation - 1) % len(current_piece.shape)
+            elif event.key == K_SPACE:
+                current_piece.y += drop_piece(current_piece, confirmed_pieces)
+                confirm_piece(current_piece, confirmed_pieces)
+                dropped = True
+                create_new_piece = True
+                draw_confirmed(confirmed_pieces)
+                screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
+                pygame.display.flip()
+                pygame.event.pump()
+                fall_time = 0
+                fall_clock.tick()
 
     screen.blit(game, (OFFSET_WIDTH, OFFSET_HEIGHT))
 
     pygame.display.flip()
 
-    if is_piece_at_bottom(current_piece):
+    if is_piece_at_bottom(current_piece, confirmed_pieces) and not dropped:
         create_new_piece = True
         confirm_piece(current_piece, confirmed_pieces)
         draw_confirmed(confirmed_pieces)
@@ -176,3 +214,4 @@ while running:
         pygame.event.pump()
         pygame.time.wait(fall_speed)
         fall_time = 0
+        fall_clock.tick()
