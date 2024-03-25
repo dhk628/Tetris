@@ -1,6 +1,7 @@
 # Tetris
 I recreated the classic Tetris game using the <a href="https://pypi.org/project/pygame/">pygame</a> package in Python.
 The goal of this project was to essentially re-familiarize myself with Python and Git.
+The program requires main.py and shapes.py to run.
 
 
 ### Progress
